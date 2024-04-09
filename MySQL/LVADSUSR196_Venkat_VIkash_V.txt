@@ -1,0 +1,92 @@
+
+/* Lab 1 */
+
+-- QUESTION 1
+
+SELECT CustomerID,DataUsed FROM customerinteractions 
+WHERE DataUsed>(SELECT AVG(DataUsed) FROM customerinteractions) 
+AND YEAR = 2024 AND Month = "March";
+
+-- QUESTION 2
+
+SELECT CustomerID,Month,CallDuration 
+FROM customerinteractions 
+WHERE (SELECT SUM(CallDuration) FROM customerinteractions WHERE Month="March")>(SELECT SUM(CallDuration) FROM customerinteractions WHERE Month='February');
+
+
+-- QUESTION 3
+
+SELECT CustomerID,MessageCount,DataUsed,Month
+FROM customerinteractions
+ORDER BY MessageCount,DataUsed DESC;
+
+ /* LAB 2 */
+ 
+ -- QUESTION 4 
+ 
+ SELECT ProductTypeID,SUM(TotalSalesAmount) 
+ FROM quarterlysales 
+ GROUP BY ProductTypeID 
+ HAVING ProductTypeID = 1 ;
+ 
+ -- QUESTION 5
+ 
+ SELECT ProductTypeID, SUM(TotalSalesAmount*UnitsSold) AS TOTAL 
+ FROM quarterlysales 
+ WHERE Quarter="Q1" 
+ GROUP BY ProductTypeID 
+ ORDER BY TOTAL LIMIT 1;
+ 
+ -- QUESTION 6
+ 
+ SELECT AVG(TotalSalesAmount),UnitsSold 
+ FROM quarterlysales 
+ WHERE ProductTypeID = 1 
+ AND Quarter = "Q2" 
+ GROUP BY UnitsSold ;
+ 
+ 
+ /* LAB 3 */
+ 
+ -- QUESTION 7
+ 
+ SELECT EnergySource,ConsumptionKWh 
+ FROM sectorenergyconsumption
+ WHERE ConsumptionKWh > (SELECT AVG(ConsumptionKWh) FROM sectorenergyconsumption) 
+ AND EnergySource IN ("Solar","Wind");
+ 
+ 
+ -- QUESTION 8
+ 
+ SELECT Sector,Month,ConsumptionKWh
+ FROM sectorenergyconsumption 
+ ORDER BY ConsumptionKWh,Month DESC;
+ 
+ -- QUESTION 9
+ 
+ SELECT EnergySource,SUM(ConsumptionKWh) AS TOTAL,Month 
+ FROM sectorenergyconsumption 
+ WHERE Month = 'February' 
+ GROUP BY EnergySource,Month 
+ ORDER BY TOTAL;
+ 
+ /* LAB 4 */
+ 
+ -- QUESTION 10
+ 
+ SELECT CustomerName, FeedbackScore,ClaimsCount FROM insuranceactivities 
+ WHERE FeedbackScore>(SELECT AVG(FeedbackScore) FROM insuranceactivities)
+ OR ClaimsCount>0
+ AND Investigation = "No";
+ 
+ -- QUESTION 11
+ 
+ SELECT CustomerName,SUM(AnnualPremium) FROM insuranceactivities 
+ WHERE Investigation="No" 
+ AND FeedbackScore>(SELECT AVG(FeedbackScore) FROM insuranceactivities) GROUP BY CustomerName;
+ 
+ -- QUESTION 12
+ 
+ SELECT PolicyType,AVG(FeedbackScore),ClaimsCount 
+ FROM insuranceactivities 
+ GROUP BY PolicyType,ClaimsCount;
