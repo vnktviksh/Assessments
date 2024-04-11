@@ -1,0 +1,119 @@
+
+-- QUESTION 1
+
+SELECT * FROM l1_maintenance_records;
+
+SELECT machine_id, AVG(cost) 
+FROM l1_maintenance_records 
+WHERE cost>(SELECT AVG(cost) FROM l1_maintenance_records) 
+AND (maintenance_date>="2024-03-01" AND maintenance_date<="2024-03-31")
+GROUP BY machine_id;
+
+
+-- QUESTION 2
+
+SELECT count(*),maintenance_type 
+FROM l1_maintenance_records 
+WHERE MONTH(maintenance_date) = 3 AND YEAR(maintenance_date) = 2024
+GROUP BY maintenance_type;
+
+
+-- QUESTION 3
+
+SELECT COUNT(*),AVG(COST),technician_name 
+FROM l1_maintenance_records
+WHERE MONTH(maintenance_date) = 3 AND COST>(SELECT AVG(COST) FROM l1_maintenance_recordS)
+GROUP BY technician_name ;
+
+
+-- QUESTION 4
+
+SELECT AVG(incident_count_pre_update-incident_count_post_update) AS "AVERAGE REDUCTION",product_id 
+FROM l2_updates
+GROUP BY product_id;
+
+
+-- QUESTION 5
+
+SELECT update_id,user_feedback_score  FROM l2_updates 
+WHERE user_feedback_score = (SELECT MAX(user_feedback_score) FROM l2_updates);
+
+-- QUESTION 6 
+
+ALTER TABLE l2_updates
+ADD COLUMN IMPROVEMENT int;
+
+UPDATE 
+l2_updates SET IMPROVEMENT = (incident_count_pre_update-incident_count_post_update);
+
+SELECT product_id,IMPROVEMENT FROM l2_updates 
+WHERE IMPROVEMENT = (SELECT MIN(IMPROVEMENT) FROM l2_updates);
+
+/* In order to improve the service 
+we could allocate more resources to this particular product P100 
+so that number of incidents could be reduced */
+
+
+-- QUESTION 7
+SELECT l3_patients.patient_name,l3_facilities.facility_name,l3_visits.reason_for_visit,l3_treatments.outcome
+FROM l3_visits
+JOIN l3_patients ON l3_patients.patient_id = l3_visits.patient_id
+JOIN l3_facilities ON l3_facilities.facility_id = l3_visits.facility_id
+JOIN l3_treatments ON l3_treatments.visit_id = l3_visits.visit_id
+WHERE MONTH(l3_visits.visit_date) = 3 AND YEAR(l3_visits.visit_date) = 2024
+AND (SELECT COUNT(visit_id) FROM l3_visits)>1;
+
+
+-- QUESTION 8 
+
+SELECT * FROM l3_facilities;
+SELECT * FROM l3_visits;
+
+SELECT COUNT((SELECT l3_visits.reason_for_visit FROM l3_visits WHERE l3_visits.reason_for_visit = "Emergency")) EMERGENCY,
+l3_facilities.facility_name FROM l3_visits
+JOIN l3_facilities ON l3_facilities.facility_id = l3_visits.facility_id
+GROUP BY l3_facilities.facility_name ORDER BY EMERGENCY DESC LIMIT 1;
+
+
+-- QUESTION 9 
+
+SELECT l3_patients.insurance_provider INSURANCE,
+COUNT((SELECT l3_treatments.outcome FROM l3_treatments WHERE l3_treatments.outcome = "Complicated"))
+OUTCOME FROM 
+l3_visits
+JOIN l3_patients ON l3_patients.patient_id = l3_visits.patient_id
+JOIN l3_treatments ON l3_treatments.visit_id = l3_visits.visit_id
+WHERE QUARTER(l3_visits.visit_date) = 1
+GROUP BY INSURANCE ORDER BY OUTCOME DESC LIMIT 1;
+
+-- QUESTION 10
+
+SELECT l4_products.product_name PNAME ,l4_products.category CATEGORY,SUM(l4_sales.quantity) QTY
+FROM l4_products,l4_sales 
+WHERE l4_sales.product_id = l4_products.product_id AND MONTH(sale_date) = 3 AND YEAR(sale_date)=2024
+GROUP BY PNAME,CATEGORY
+ORDER BY QTY DESC;
+
+
+-- QUESTION 11
+
+CREATE VIEW SALES_1 AS
+SELECT l4_sales.quantity,
+l4_sales.sale_id,
+l4_sales.sale_date,
+l4_stores.store_id,
+l4_stores.store_name,
+l4_stores.region
+FROM l4_sales,l4_stores
+WHERE l4_sales.store_id = l4_stores.store_id;
+
+SELECT * FROM SALES_1;
+
+SELECT SUM(quantity),region FROM SALES_1
+WHERE QUARTER(sale_date) = 1
+GROUP BY REGION ORDER BY SUM(quantity) DESC;
+
+-- QUESTION 12
+
+SELECT * FROM l4_sales
+RIGHT JOIN l4_products ON l4_products.product_id = l4_sales.product_id;
