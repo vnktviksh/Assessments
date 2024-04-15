@@ -1,0 +1,155 @@
+
+-- QUESTION 1
+WITH avg_category AS(
+SELECT P.product_id,P.product_category cat,S.sales_date d,
+AVG(S.sales_amount) OVER(PARTITION BY P.product_category ORDER BY S.sales_amount) average FROM sales_records S
+JOIN products P ON P.product_id = S.product_id
+)
+SELECT cat,SUM(average) as average_category FROM avg_category WHERE DATEDIFF(CURRENT_DATE(),d)<30 GROUP BY cat;
+
+
+-- QUESTION 2
+
+SELECT product_id,sales_amount,
+RANK() OVER(ORDER BY sales_amount DESC) FROM sales_records WHERE YEAR(sales_date) = 2024
+LIMIT 3;
+
+-- QUESTION 3
+
+WITH sum_sales_per_customer AS(
+SELECT C.customer_id,SUM(S.sales_amount),
+RANK() OVER(ORDER BY SUM(S.sales_amount) DESC) 
+FROM SALES_RECORDS S
+JOIN CUSTOMERS C ON C.customer_id = S.customer_id
+JOIN PRODUCTS P ON P.product_id = S.product_id
+GROUP BY C.customer_id
+)
+SELECT * FROM sum_sales_per_customer LIMIT 3;
+
+
+-- QUESTION 4
+
+WITH count_of_customers AS(
+SELECT C.customer_id CID,count(C.customer_id) CU FROM SALES_RECORDS S 
+JOIN CUSTOMERS C ON C.customer_id = S.customer_id
+WHERE DATEDIFF(CURRENT_DATE(),SALES_DATE) BETWEEN 0 AND 120
+GROUP BY C.customer_id
+)
+SELECT * FROM count_of_customers;
+
+
+-- QUESTION 5
+
+SELECT tickets.flight_id,AVG(tickets.ticket_price) from tickets,flights
+WHERE tickets.flight_id = flights.flight_id
+group by flight_id;
+
+-- QUESTION 6
+
+SELECT t.flight_id,f.departure_date,COUNT(t.flight_id) FROM tickets t
+JOIN flights F on f.flight_id = t.flight_id
+WHERE MONTH(ticket_date) = 3
+GROUP BY flight_id
+ORDER BY COUNT(t.flight_id) DESC;
+
+-- QUESTION 7
+
+SELECT P.passenger_name, SUM(t.ticket_price), P.frequent_flyer_status FROM TICKETS T
+JOIN PASSENGERS P ON P.passenger_id = T.passenger_id
+GROUP BY P.passenger_id
+ORDER BY SUM(t.ticket_price) DESC
+LIMIT 5;
+
+-- QUESTION 8
+
+SELECT MONTH(ticket_date),COUNT(ticket_id),SUM(ticket_price) FROM tickets
+GROUP BY MONTH(ticket_date);
+
+-- QUESTION 9
+
+-- SELECT AVG
+
+-- QUESTION 10
+
+SELECT COUNT(p.player_id),g.game_name FROM playerscores PS
+JOIN PLAYERS P ON P.PLAYER_ID = PS.PLAYER_ID
+JOIN GAMES G ON G.GAME_ID = PS.GAME_ID
+GROUP BY G.GAME_NAME
+ORDER BY COUNT(p.player_id) DESC
+LIMIT 3;
+
+-- QUESTION 11
+
+SELECT AVG(PS.score),MAX(PS.SCORE),COUNT(P.player_id) FROM playerscores PS
+JOIN PLAYERS P ON P.PLAYER_ID = PS.PLAYER_ID
+JOIN GAMES G ON G.GAME_ID = PS.GAME_ID
+GROUP BY G.GAME_ID;
+
+-- QUESTION 12
+
+SELECT P.player_name,P.registration_date,PS.play_date FROM playerscores PS
+JOIN PLAYERS P ON P.PLAYER_ID = PS.PLAYER_ID
+WHERE datediff(CURRENT_DATE,PS.play_date)>30;
+
+-- QUESTION 13
+
+SELECT doctor_id,SUM(cost) FROM treatments GROUP BY doctor_id ORDER BY SUM(cost) DESC
+LIMIT 5;
+
+-- QUESTION 14
+SET @total_sum = (SELECT sum(cost) from treatments);
+
+WITH total AS(
+SELECT treatment_name,cost,SUM(cost) S FROM treatments
+WHERE treatment_name = "Angioplasty"
+GROUP BY treatment_id)
+
+SELECT treatment_name,S,(S/@total_sum*100) as percent FROM total;
+
+-- QUESTION 15
+
+SELECT P.patient_id,P.patient_name,P.admission_date,P.discharge_date FROM TREATMENTS T
+JOIN PATIENTS P ON P.patient_id = T.patient_id
+WHERE DATEDIFF(P.discharge_date,P.admission_date)<30
+order by admission_date;
+
+SELECT * FROM treatments;
+
+-- QUESTION 16
+
+
+-- QUESTION 17
+
+SELECT C.department,
+AVG(E.grade) OVER(partition by E.semester,C.department order by C.department,E.semester) as avg_grade_per_sem_dept
+FROM enrollments E
+JOIN COURSES C ON C.course_id = E.course_id;
+
+
+-- QUESTION 18
+
+SELECT S.major,COUNT(S.student_id),S.enrollment_year FROM ENROLLMENTS E 
+JOIN STUDENTS S ON S.student_id = E.student_id
+GROUP BY S.major,S.enrollment_year
+ORDER BY COUNT(S.student_id) DESC
+LIMIT 5;
+
+-- QUESTION 19
+
+SELECT S.student_id,S.student_name,E.semester,SUM(C.credits)
+FROM ENROLLMENTS E
+JOIN STUDENTS S ON S.Student_id = E.student_id
+JOIN COURSES C ON C.course_id = E.course_id
+GROUP BY S.student_id,E.semester;
+
+-- QUESTION 20
+
+WITH top_3_courses AS(
+SELECT C.course_id,COUNT(S.student_id) C FROM ENROLLMENTS E
+JOIN STUDENTS S ON S.student_id = E.student_id
+JOIN COURSES C ON C.course_id = E.course_id
+GROUP BY C.course_id
+ORDER BY COUNT(S.student_id) DESC
+LIMIT 3
+)
+SELECT * from top_3_courses;
